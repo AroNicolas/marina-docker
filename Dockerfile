@@ -1,31 +1,31 @@
-# Étape 1 : build du projet OCaml marina
-FROM ocaml/opam:debian-12 as builder
+# Étape 1 : image de base avec OCaml
+FROM ocaml/opam:ubuntu-22.04 as build
 
 WORKDIR /marina
-RUN sudo apt update && sudo apt install -y make ocaml ocamlbuild
 
-# Clone le projet marina
-COPY ./marina /marina
+# Installer make, ocamlbuild et dépendances
+RUN sudo apt-get update && \
+    sudo apt-get install -y make ocaml ocamlbuild git
+
+# Cloner le projet marina
+RUN git clone https://github.com/hei-school/marina.git .
+
+# Construire le binaire marina
 RUN make
 
-# Étape 2 : image finale avec Python et Flask
-FROM python:3.11-slim
+# Étape 2 : image finale plus légère avec Python et le binaire seulement
+FROM python:3.10-slim
+
+# Installer Flask
+RUN pip install flask
+
+# Copier le binaire marina depuis l'étape de build
+COPY --from=build /marina/marina /app/marina
+
+# Copier ton script Flask (assure-toi qu'il s'appelle app.py)
+COPY app.py /app/app.py
 
 WORKDIR /app
 
-# Copie le binaire OCaml compilé
-COPY --from=builder /marina/marina ./marina/marina
-RUN chmod +x ./marina/marina
-
-# Copie le serveur Flask et les dépendances
-COPY app.py requirements.txt ./
-RUN pip install -r requirements.txt
-
-# Copie le dossier marina si besoin pour autres fichiers
-COPY ./marina ./marina
-
-# Expose le port Flask
-EXPOSE 10000
-
-# Lance Flask
+# Lancer le serveur Flask sur le port 8080
 CMD ["python", "app.py"]
