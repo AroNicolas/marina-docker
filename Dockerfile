@@ -27,5 +27,8 @@ COPY app.py /app/app.py
 
 WORKDIR /app
 
-# Lancer le serveur Flask sur le port 8080
-CMD ["python", "app.py"]
+# Expose le port (ici 5000, tu peux adapter selon besoin)
+EXPOSE 5000
+
+# Lance gunicorn au lieu de flask dev server
+CMD ["gunicorn", "-b", "0.0.0.0:5000", "app:app"]
