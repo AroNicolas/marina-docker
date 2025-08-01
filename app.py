@@ -12,7 +12,7 @@ def run_marina():
 
     try:
         result = subprocess.run(
-            ["./marina/marina", laza],
+            ["./marina", laza],
             capture_output=True,
             text=True,
             check=True
